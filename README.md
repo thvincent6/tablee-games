@@ -54,6 +54,7 @@ recopié sur la branche `catalog`, servie par jsDelivr en secours
 ```text
 index.json        liste des jeux : id, nom, version, moteur, chemin, SHA-256, joueurs, étiquettes
 index.json.sig    signature Ed25519 de index.json (base64), octet pour octet
+confidentialite/  politique de confidentialité de l'app (pages/confidentialite/)
 games/…           copie exacte des fichiers de jeux
 ```
 

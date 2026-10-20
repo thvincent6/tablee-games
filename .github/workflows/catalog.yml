@@ -48,6 +48,8 @@ jobs:
           esac
       - name: Construire
         run: npm run catalog:build -- games site $previous
+      - name: Pages du site (politique de confidentialité…)
+        run: cp -r pages/. site/
       - name: Signer
         env:
           CATALOG_SIGNING_KEY: ${{ secrets.CATALOG_SIGNING_KEY }}
