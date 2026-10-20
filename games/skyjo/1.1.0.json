@@ -1,7 +1,7 @@
 {
   "$schema": "../../schema/game.schema.json",
   "id": "skyjo",
-  "name": "Skyjo",
+  "name": "Skyjo (corrigé)",
   "version": "1.1.0",
   "engine": 1,
   "summary": "Chaque manche, chacun note la somme de ses cartes. Celui qui a terminé la manche voit son score doublé s'il n'a pas strictement le plus bas (et un score positif). La partie s'arrête quand un joueur atteint le seuil : le plus bas gagne.",
