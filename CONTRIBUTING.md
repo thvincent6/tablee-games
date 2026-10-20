@@ -153,8 +153,13 @@ cas faux affiche le score attendu et le score obtenu côte à côte :
 
 1. Ajoute ton fichier dans `games/<id>/<version>.json`.
 2. Vérifie que `npm run games:check -- games` affiche « Tout est bon ».
-3. Ouvre la pull request en indiquant le jeu, le lien vers les règles officielles et d'où viennent
-   tes cas de test.
+3. Ouvre la pull request : le modèle te demande le jeu, le lien vers les règles officielles et
+   d'où viennent tes cas de test.
 
-La CI rejoue la vérification. Avant la fusion, le barème est comparé aux règles officielles ;
-chaque écart est signalé dans la pull request.
+La CI vérifie alors chaque fichier ajouté (schéma, limites, cas de test) et refuse toute
+modification ou suppression d'un fichier déjà publié. Son rapport arrive en commentaire de la pull
+request, avec le score attendu et le score obtenu pour chaque cas faux ; il se met à jour à chaque
+nouveau commit. Une pull request en échec ne peut pas être fusionnée.
+
+Avant la fusion, le barème est comparé aux règles officielles ; chaque écart est signalé dans la
+pull request.

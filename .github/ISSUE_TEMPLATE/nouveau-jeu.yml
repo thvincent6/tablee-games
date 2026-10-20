@@ -1,0 +1,44 @@
+name: Proposer un jeu
+description: Un jeu à ajouter au catalogue (tu peux aussi ouvrir directement une pull request).
+title: 'Nouveau jeu : '
+labels: [nouveau jeu]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci ! Décris le jeu avec tes propres mots : ne colle jamais de texte d'un livret de règles.
+        Pour écrire le JSON toi-même, suis [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md).
+  - type: input
+    id: game
+    attributes:
+      label: Jeu
+      description: Nom du jeu et éditeur.
+      placeholder: Skyjo (Magilano)
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Règles officielles
+      description: Lien https vers les règles de l'éditeur ou de la fédération.
+      placeholder: https://…
+    validations:
+      required: true
+  - type: textarea
+    id: scoring
+    attributes:
+      label: Comment on compte les points
+      description: Le barème, résumé avec tes mots, et la condition de fin de partie.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Exemples chiffrés
+      description: >-
+        Une ou deux manches réelles avec les scores attendus (idéalement tirées des exemples des
+        règles officielles) : elles deviendront les cas de test.
+      placeholder: |
+        3 joueurs. Léa annonce 2 et fait 2 plis : 40 points…
+    validations:
+      required: true

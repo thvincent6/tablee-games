@@ -6,8 +6,9 @@ module.exports = {
   collectCoverageFrom: [
     'packages/engine/src/**/*.ts',
     '!packages/engine/src/__fixtures__/**',
-    // Point d'entrée en ligne de commande : testé en lançant le script (cli/__tests__).
+    // Points d'entrée en ligne de commande : testés en lançant les scripts (cli/__tests__).
     '!packages/engine/src/cli/games-check.ts',
+    '!packages/engine/src/cli/review-pr.ts',
   ],
   coverageThreshold: {
     global: { statements: 90, branches: 90, functions: 90, lines: 90 },
