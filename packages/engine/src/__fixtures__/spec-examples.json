@@ -1,0 +1,322 @@
+[
+  {
+    "id": "skyjo",
+    "name": "Skyjo",
+    "version": "1.0.0",
+    "engine": 1,
+    "archetype": "rounds",
+    "players": {
+      "min": 2,
+      "max": 8
+    },
+    "winner": "lowest",
+    "options": [
+      {
+        "key": "threshold",
+        "label": "Fin de partie",
+        "type": "int",
+        "default": 100,
+        "step": 10
+      },
+      {
+        "key": "double",
+        "label": "Doubler le score du finisseur",
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "inputs": {
+      "player": [
+        {
+          "key": "points",
+          "label": "Points",
+          "type": "int",
+          "min": -24,
+          "max": 144
+        },
+        {
+          "key": "finisher",
+          "label": "A terminé la manche",
+          "type": "bool",
+          "unique": true
+        }
+      ]
+    },
+    "scoring": {
+      "scope": "player",
+      "vars": {
+        "doubled": "opt.double and finisher and points > 0 and points >= min(others.points)"
+      },
+      "score": "doubled ? points * 2 : points",
+      "marks": [
+        {
+          "when": "doubled",
+          "label": "×2"
+        }
+      ]
+    },
+    "end": "max(totals) >= opt.threshold",
+    "tests": [
+      {
+        "name": "Finisseur doublé",
+        "options": {
+          "double": true
+        },
+        "inputs": [
+          {
+            "points": 10,
+            "finisher": true
+          },
+          {
+            "points": 8,
+            "finisher": false
+          }
+        ],
+        "expect": [20, 8]
+      }
+    ]
+  },
+  {
+    "id": "yams",
+    "name": "Yams",
+    "version": "1.0.0",
+    "engine": 1,
+    "archetype": "grid",
+    "players": {
+      "min": 1,
+      "max": 8
+    },
+    "winner": "highest",
+    "cells": [
+      {
+        "key": "ones",
+        "label": "As",
+        "type": "pick",
+        "values": [0, 1, 2, 3, 4, 5]
+      },
+      {
+        "key": "twos",
+        "label": "Deux",
+        "type": "pick",
+        "values": [0, 2, 4, 6, 8, 10]
+      },
+      {
+        "key": "threes",
+        "label": "Trois",
+        "type": "pick",
+        "values": [0, 3, 6, 9, 12, 15]
+      },
+      {
+        "key": "fours",
+        "label": "Quatre",
+        "type": "pick",
+        "values": [0, 4, 8, 12, 16, 20]
+      },
+      {
+        "key": "fives",
+        "label": "Cinq",
+        "type": "pick",
+        "values": [0, 5, 10, 15, 20, 25]
+      },
+      {
+        "key": "sixes",
+        "label": "Six",
+        "type": "pick",
+        "values": [0, 6, 12, 18, 24, 30]
+      },
+      {
+        "key": "brelan",
+        "label": "Brelan",
+        "type": "int",
+        "min": 0,
+        "max": 30
+      },
+      {
+        "key": "carre",
+        "label": "Carré",
+        "type": "int",
+        "min": 0,
+        "max": 30
+      },
+      {
+        "key": "full",
+        "label": "Full",
+        "type": "pick",
+        "values": [0, 25]
+      },
+      {
+        "key": "small",
+        "label": "Petite suite",
+        "type": "pick",
+        "values": [0, 15]
+      },
+      {
+        "key": "large",
+        "label": "Grande suite",
+        "type": "pick",
+        "values": [0, 30]
+      },
+      {
+        "key": "yams",
+        "label": "Yams",
+        "type": "pick",
+        "values": [0, 50]
+      },
+      {
+        "key": "chance",
+        "label": "Chance",
+        "type": "int",
+        "min": 0,
+        "max": 30
+      }
+    ],
+    "scoring": {
+      "vars": {
+        "upper": "ones + twos + threes + fours + fives + sixes",
+        "bonus": "upper >= 63 ? 35 : 0"
+      },
+      "score": "upper + bonus + brelan + carre + full + small + large + yams + chance"
+    },
+    "end": "grid_complete",
+    "tests": [
+      {
+        "name": "Bonus de la partie supérieure",
+        "inputs": {
+          "ones": 3,
+          "twos": 6,
+          "threes": 9,
+          "fours": 12,
+          "fives": 15,
+          "sixes": 18,
+          "brelan": 20,
+          "carre": 0,
+          "full": 25,
+          "small": 15,
+          "large": 0,
+          "yams": 50,
+          "chance": 22
+        },
+        "expect": 230
+      }
+    ]
+  },
+  {
+    "id": "coinche",
+    "name": "Coinche",
+    "version": "1.0.0",
+    "engine": 1,
+    "archetype": "contract",
+    "players": {
+      "min": 4,
+      "max": 4
+    },
+    "teams": {
+      "count": 2,
+      "size": 2
+    },
+    "winner": "highest",
+    "inputs": {
+      "round": [
+        {
+          "key": "contract",
+          "label": "Contrat",
+          "type": "enum",
+          "values": [80, 90, 100, 110, 120, 130, 140, 150, 160, "capot"]
+        },
+        {
+          "key": "coinche",
+          "label": "Coinche",
+          "type": "enum",
+          "values": [1, 2, 4],
+          "labels": ["Non", "Coinché", "Surcoinché"]
+        },
+        {
+          "key": "takerPts",
+          "label": "Points preneur",
+          "type": "int",
+          "min": 0,
+          "max": 162
+        },
+        {
+          "key": "defensePts",
+          "label": "Points défense",
+          "type": "int",
+          "min": 0,
+          "max": 162
+        },
+        {
+          "key": "belote",
+          "label": "Belote",
+          "type": "enum",
+          "values": ["none", "taker", "defense"]
+        },
+        {
+          "key": "capot",
+          "label": "Tous les plis au preneur",
+          "type": "bool"
+        }
+      ]
+    },
+    "scoring": {
+      "scope": "role",
+      "vars": {
+        "belT": "belote == 'taker' ? 20 : 0",
+        "belD": "belote == 'defense' ? 20 : 0",
+        "askedCapot": "contract == 'capot'",
+        "c": "askedCapot ? 0 : contract",
+        "made": "askedCapot ? capot : takerPts + belT >= c and takerPts + belT > defensePts + belD",
+        "pot": "(160 + c) * coinche"
+      },
+      "taker": "askedCapot ? (made ? 500 * coinche + belT : 0) : capot ? 250 + c + belT : made ? (coinche > 1 ? pot + belT : round(takerPts + belT + c, 10)) : belT",
+      "defense": "askedCapot ? (made ? belD : 500 * coinche + belD) : capot ? belD : made ? (coinche > 1 ? belD : round(defensePts + belD, 10)) : pot + belD"
+    },
+    "tests": [
+      {
+        "name": "80 demandé, 110 faits",
+        "inputs": {
+          "contract": 80,
+          "coinche": 1,
+          "takerPts": 110,
+          "defensePts": 52,
+          "belote": "none",
+          "capot": false
+        },
+        "expect": {
+          "taker": 190,
+          "defense": 50
+        }
+      },
+      {
+        "name": "Chute : défense devant",
+        "inputs": {
+          "contract": 90,
+          "coinche": 1,
+          "takerPts": 105,
+          "defensePts": 107,
+          "belote": "none",
+          "capot": false
+        },
+        "expect": {
+          "taker": 0,
+          "defense": 250
+        }
+      }
+    ]
+  },
+  {
+    "version": 42,
+    "generatedAt": "2026-11-02T10:00:00Z",
+    "games": [
+      {
+        "id": "coinche",
+        "name": "Coinche",
+        "version": "1.0.0",
+        "engine": 1,
+        "path": "games/coinche/1.0.0.json",
+        "sha256": "<empreinte du fichier>",
+        "players": [4, 4],
+        "tags": ["cartes", "équipes"]
+      }
+    ]
+  }
+]

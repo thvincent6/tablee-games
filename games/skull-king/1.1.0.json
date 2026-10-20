@@ -1,0 +1,88 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "id": "skull-king",
+  "name": "Skull King",
+  "version": "1.1.0",
+  "engine": 1,
+  "summary": "10 manches, n cartes à la manche n. Mise réussie : 20 points par pli misé, plus les bonus. Mise ratée : −10 par pli d'écart, sans bonus. Mise zéro : 10 × le numéro de manche si réussie, −10 × le numéro de manche sinon. Le plus haut gagne.",
+  "tags": ["cartes", "plis"],
+  "archetype": "rounds",
+  "players": { "min": 2, "max": 8 },
+  "winner": "highest",
+  "inputs": {
+    "player": [
+      { "key": "bid", "label": "Mise", "type": "int", "min": 0, "max": "$round" },
+      { "key": "tricks", "label": "Plis réalisés", "type": "int", "min": 0, "max": "$round" },
+      { "key": "bonus", "label": "Bonus", "type": "int", "min": 0, "max": 500 }
+    ]
+  },
+  "scoring": {
+    "scope": "player",
+    "vars": { "made": "bid == tricks" },
+    "score": "bid == 0 ? (made ? 10 * round : -10 * round) : made ? 20 * bid + bonus : -10 * abs(bid - tricks)"
+  },
+  "end": "round >= 10",
+  "validate": [
+    {
+      "rule": "sum(all.tricks) == round",
+      "message": "La somme des plis doit valoir le numéro de la manche (une carte par pli)."
+    }
+  ],
+  "tests": [
+    {
+      "name": "Mise réussie avec bonus",
+      "round": 3,
+      "inputs": [
+        { "bid": 2, "tricks": 2, "bonus": 30 },
+        { "bid": 1, "tricks": 1, "bonus": 0 },
+        { "bid": 1, "tricks": 0, "bonus": 0 }
+      ],
+      "expect": [70, 20, -10]
+    },
+    {
+      "name": "Mise ratée : bonus perdu",
+      "round": 4,
+      "inputs": [
+        { "bid": 1, "tricks": 4, "bonus": 20 },
+        { "bid": 3, "tricks": 0, "bonus": 0 }
+      ],
+      "expect": [-30, -30]
+    },
+    {
+      "name": "Mise zéro réussie",
+      "round": 7,
+      "inputs": [
+        { "bid": 0, "tricks": 0, "bonus": 0 },
+        { "bid": 7, "tricks": 7, "bonus": 0 }
+      ],
+      "expect": [70, 140]
+    },
+    {
+      "name": "Mise zéro ratée",
+      "round": 5,
+      "inputs": [
+        { "bid": 0, "tricks": 2, "bonus": 0 },
+        { "bid": 3, "tricks": 3, "bonus": 10 }
+      ],
+      "expect": [-50, 70]
+    },
+    {
+      "name": "Première manche : mise zéro et mise un",
+      "inputs": [
+        { "bid": 0, "tricks": 0, "bonus": 0 },
+        { "bid": 1, "tricks": 1, "bonus": 0 },
+        { "bid": 0, "tricks": 0, "bonus": 0 }
+      ],
+      "expect": [10, 20, 10]
+    },
+    {
+      "name": "Dernière manche, tout le monde rate",
+      "round": 10,
+      "inputs": [
+        { "bid": 10, "tricks": 6, "bonus": 0 },
+        { "bid": 0, "tricks": 4, "bonus": 0 }
+      ],
+      "expect": [-40, -100]
+    }
+  ]
+}
