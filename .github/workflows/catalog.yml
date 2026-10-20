@@ -1,0 +1,68 @@
+# Publie le catalogue signé sur GitHub Pages à chaque changement de main : index.json (version
+# suivante), index.json.sig et une copie exacte des jeux. La signature n'a lieu qu'après
+# l'approbation manuelle exigée par l'environnement « release », seul à détenir la clé privée.
+name: Catalogue signé
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Une publication à la fois : chacune lit la version publiée par la précédente.
+concurrency:
+  group: catalog
+  cancel-in-progress: false
+
+env:
+  SITE_URL: https://thvincent6.github.io/tablee-games
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      # Sans scripts d'installation : aucun code de dépendance ne s'exécute à côté du secret.
+      - run: npm ci --ignore-scripts
+      - name: Catalogue publié
+        run: |
+          status=$(curl -sS -o previous.json -w '%{http_code}' "$SITE_URL/index.json")
+          case "$status" in
+            200) echo "previous=--previous previous.json" >> "$GITHUB_ENV" ;;
+            404) echo "Aucun catalogue publié : première version." ;;
+            # Sans la version publiée, impossible de garantir une version plus récente.
+            *) echo "Catalogue publié illisible (HTTP $status)."; exit 1 ;;
+          esac
+      - name: Construire
+        run: npm run catalog:build -- games site $previous
+      - name: Signer
+        env:
+          CATALOG_SIGNING_KEY: ${{ secrets.CATALOG_SIGNING_KEY }}
+        run: npm run catalog:sign -- site/index.json
+      - name: Vérifier avec la clé publique
+        run: npm run catalog:verify -- site/index.json site/index.json.sig
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: sign
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

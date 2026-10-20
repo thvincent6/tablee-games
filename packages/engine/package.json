@@ -8,6 +8,7 @@
   "types": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./catalog": "./src/catalog/index.ts",
     "./definition": "./src/definition/index.ts",
     "./expression": "./src/expression/index.ts",
     "./game": "./src/game/index.ts",
@@ -20,6 +21,7 @@
     "!src/__fixtures__"
   ],
   "dependencies": {
+    "@noble/curves": "^2.4.0",
     "zod": "^4.6.7"
   }
 }

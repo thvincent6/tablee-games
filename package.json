@@ -13,7 +13,11 @@
     "test:engine": "jest --coverage",
     "schema:export": "UPDATE_SCHEMA=1 jest packages/engine/src/definition/__tests__/json-schema.test.ts",
     "games:check": "tsx packages/engine/src/cli/games-check.ts",
-    "games:review": "tsx packages/engine/src/cli/review-pr.ts"
+    "games:review": "tsx packages/engine/src/cli/review-pr.ts",
+    "keys:generate": "tsx packages/engine/src/cli/generate-keys.ts",
+    "catalog:build": "tsx packages/engine/src/cli/build-catalog.ts",
+    "catalog:sign": "tsx packages/engine/src/cli/sign-catalog.ts",
+    "catalog:verify": "tsx packages/engine/src/cli/verify-catalog.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
