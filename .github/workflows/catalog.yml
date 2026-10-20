@@ -1,5 +1,6 @@
 # Publie le catalogue signé sur GitHub Pages à chaque changement de main : index.json (version
-# suivante), index.json.sig et une copie exacte des jeux. La signature n'a lieu qu'après
+# suivante), index.json.sig et une copie exacte des jeux, aussi poussés sur la branche `catalog`
+# (servie par jsDelivr, secours de Pages). La signature n'a lieu qu'après
 # l'approbation manuelle exigée par l'environnement « release », seul à détenir la clé privée.
 name: Catalogue signé
 
@@ -23,6 +24,9 @@ jobs:
   sign:
     runs-on: ubuntu-latest
     environment: release
+    permissions:
+      # Pour le miroir : la branche `catalog`, servie par jsDelivr en secours de Pages.
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -50,6 +54,23 @@ jobs:
         run: npm run catalog:sign -- site/index.json
       - name: Vérifier avec la clé publique
         run: npm run catalog:verify -- site/index.json site/index.json.sig
+      - name: Miroir pour jsDelivr (branche catalog)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd site
+          git init -q -b catalog
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -q -m "Catalogue version $(jq .version index.json)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" catalog
+          rm -rf .git
+          # jsDelivr garde une branche en cache plusieurs heures : on lui demande de la relire.
+          for file in index.json index.json.sig; do
+            curl -fsS "https://purge.jsdelivr.net/gh/${REPO}@catalog/${file}" > /dev/null || true
+          done
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site

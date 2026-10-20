@@ -1,7 +1,9 @@
 name: CI
 
 on:
+  # Pas sur la branche `catalog` (site publié, sans code).
   push:
+    branches: [main]
   pull_request:
 
 jobs:

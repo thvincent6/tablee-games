@@ -47,7 +47,9 @@ la main : elle modifie la façon dont les jeux sont vérifiés.
 
 ## Catalogue signé
 
-Le catalogue est publié sur GitHub Pages, à <https://thvincent6.github.io/tablee-games/> :
+Le catalogue est publié sur GitHub Pages, à <https://thvincent6.github.io/tablee-games/>, et
+recopié sur la branche `catalog`, servie par jsDelivr en secours
+(<https://cdn.jsdelivr.net/gh/thvincent6/tablee-games@catalog/>) :
 
 ```text
 index.json        liste des jeux : id, nom, version, moteur, chemin, SHA-256, joueurs, étiquettes
