@@ -1,0 +1,144 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "id": "belote",
+  "name": "Belote",
+  "version": "1.0.0",
+  "engine": 1,
+  "summary": "Deux équipes de deux. Chaque donne vaut 162 points (dix de der compris). L'équipe preneuse doit faire plus que la défense, belote comprise, sinon elle est « dedans » : la défense marque 162. Belote-rebelote : 20 points, toujours gardés par l'équipe qui l'a. Capot : 250 points. Fin à 1000 ou 501 points.",
+  "tags": ["cartes", "équipes", "plis"],
+  "source": "https://www.ffbelote.org",
+  "archetype": "contract",
+  "players": { "min": 4, "max": 4 },
+  "teams": { "count": 2, "size": 2 },
+  "winner": "highest",
+  "options": [
+    {
+      "key": "target",
+      "label": "Fin de partie",
+      "type": "enum",
+      "values": [1000, 501],
+      "labels": ["1000 points", "501 points"],
+      "default": 1000
+    }
+  ],
+  "inputs": {
+    "round": [
+      {
+        "key": "takerPts",
+        "label": "Points de l'équipe preneuse",
+        "type": "int",
+        "min": 0,
+        "max": 162,
+        "complement": { "field": "defensePts", "total": 162 }
+      },
+      {
+        "key": "defensePts",
+        "label": "Points de la défense",
+        "type": "int",
+        "min": 0,
+        "max": 162,
+        "complement": { "field": "takerPts", "total": 162 }
+      },
+      {
+        "key": "belote",
+        "label": "Belote-rebelote",
+        "type": "enum",
+        "values": ["none", "taker", "defense"],
+        "labels": ["Personne", "Preneurs", "Défense"],
+        "default": "none"
+      },
+      {
+        "key": "capot",
+        "label": "Capot",
+        "type": "enum",
+        "values": ["none", "taker", "defense"],
+        "labels": ["Non", "Preneurs", "Défense"],
+        "default": "none"
+      }
+    ]
+  },
+  "scoring": {
+    "scope": "role",
+    "vars": {
+      "takerBelote": "belote == 'taker' ? 20 : 0",
+      "defenseBelote": "belote == 'defense' ? 20 : 0",
+      "dedans": "capot == 'defense' or (capot == 'none' and takerPts + takerBelote < defensePts + defenseBelote)"
+    },
+    "taker": "capot == 'taker' ? 250 + takerBelote : dedans ? takerBelote : takerPts + takerBelote",
+    "defense": "capot == 'defense' ? 250 + defenseBelote : capot == 'taker' ? defenseBelote : dedans ? 162 + defenseBelote : defensePts + defenseBelote",
+    "describe": [
+      { "when": "capot == 'taker'", "text": "Capot des preneurs" },
+      { "when": "capot == 'defense'", "text": "Capot de la défense" },
+      { "when": "dedans", "text": "Preneurs dedans ({takerPts} contre {defensePts})" },
+      { "when": "true", "text": "Contrat rempli ({takerPts} contre {defensePts})" }
+    ]
+  },
+  "end": "max(totals) >= opt.target",
+  "validate": [
+    {
+      "rule": "takerPts + defensePts == 162",
+      "message": "Les points des deux équipes doivent faire 162 (sans la belote)."
+    },
+    {
+      "rule": "capot == 'taker' ? defensePts == 0 : capot == 'defense' ? takerPts == 0 : true",
+      "message": "Capot : l'équipe qui n'a fait aucun pli a 0 point."
+    }
+  ],
+  "tests": [
+    {
+      "name": "Contrat rempli, sans belote",
+      "inputs": { "takerPts": 100, "defensePts": 62, "belote": "none", "capot": "none" },
+      "expect": { "taker": 100, "defense": 62 }
+    },
+    {
+      "name": "Contrat rempli avec la belote des preneurs",
+      "inputs": { "takerPts": 90, "defensePts": 72, "belote": "taker", "capot": "none" },
+      "expect": { "taker": 110, "defense": 72 }
+    },
+    {
+      "name": "Preneurs dedans : la défense marque 162",
+      "inputs": { "takerPts": 70, "defensePts": 92, "belote": "none", "capot": "none" },
+      "expect": { "taker": 0, "defense": 162 }
+    },
+    {
+      "name": "La belote sauve les preneurs (92 contre 90)",
+      "inputs": { "takerPts": 72, "defensePts": 90, "belote": "taker", "capot": "none" },
+      "expect": { "taker": 92, "defense": 90 }
+    },
+    {
+      "name": "Dedans à cause de la belote de la défense",
+      "inputs": { "takerPts": 75, "defensePts": 87, "belote": "defense", "capot": "none" },
+      "expect": { "taker": 0, "defense": 182 }
+    },
+    {
+      "name": "Dedans : les preneurs gardent leur belote",
+      "inputs": { "takerPts": 60, "defensePts": 102, "belote": "taker", "capot": "none" },
+      "expect": { "taker": 20, "defense": 162 }
+    },
+    {
+      "name": "Égalité 81-81 : chacun marque ses points",
+      "inputs": { "takerPts": 81, "defensePts": 81, "belote": "none", "capot": "none" },
+      "expect": { "taker": 81, "defense": 81 }
+    },
+    {
+      "name": "Capot des preneurs",
+      "inputs": { "takerPts": 162, "defensePts": 0, "belote": "none", "capot": "taker" },
+      "expect": { "taker": 250, "defense": 0 }
+    },
+    {
+      "name": "Capot des preneurs avec leur belote",
+      "inputs": { "takerPts": 162, "defensePts": 0, "belote": "taker", "capot": "taker" },
+      "expect": { "taker": 270, "defense": 0 }
+    },
+    {
+      "name": "Capot des preneurs, belote de la défense",
+      "inputs": { "takerPts": 162, "defensePts": 0, "belote": "defense", "capot": "taker" },
+      "expect": { "taker": 250, "defense": 20 }
+    },
+    {
+      "name": "Capot de la défense, belote des preneurs",
+      "inputs": { "takerPts": 0, "defensePts": 162, "belote": "taker", "capot": "defense" },
+      "expect": { "taker": 20, "defense": 250 }
+    }
+  ]
+}

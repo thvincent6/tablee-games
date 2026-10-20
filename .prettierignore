@@ -1,0 +1,6 @@
+coverage/
+package-lock.json
+# Fichiers de jeux : leur SHA-256 porte sur le texte exact, on ne les reformate pas.
+games/
+# Généré par `npm run schema:export`.
+schema/
