@@ -1,0 +1,155 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "id": "yams",
+  "name": "Yams",
+  "version": "1.0.0",
+  "engine": 1,
+  "summary": "13 cases par joueur, chacune remplie une seule fois (0 si on la barre). Partie haute : somme des dés de chaque valeur, bonus de 35 à partir de 63. Partie basse : brelan, carré et chance (somme des dés), full 25, petite suite 15, grande suite 30, Yams 50. Le plus haut total gagne.",
+  "tags": ["dés"],
+  "archetype": "grid",
+  "players": { "min": 1, "max": 8 },
+  "winner": "highest",
+  "cells": [
+    { "key": "ones", "label": "As", "type": "pick", "values": [0, 1, 2, 3, 4, 5] },
+    { "key": "twos", "label": "Deux", "type": "pick", "values": [0, 2, 4, 6, 8, 10] },
+    { "key": "threes", "label": "Trois", "type": "pick", "values": [0, 3, 6, 9, 12, 15] },
+    { "key": "fours", "label": "Quatre", "type": "pick", "values": [0, 4, 8, 12, 16, 20] },
+    { "key": "fives", "label": "Cinq", "type": "pick", "values": [0, 5, 10, 15, 20, 25] },
+    { "key": "sixes", "label": "Six", "type": "pick", "values": [0, 6, 12, 18, 24, 30] },
+    { "key": "brelan", "label": "Brelan", "type": "int", "min": 0, "max": 30 },
+    { "key": "carre", "label": "Carré", "type": "int", "min": 0, "max": 30 },
+    { "key": "full", "label": "Full", "type": "pick", "values": [0, 25] },
+    { "key": "small", "label": "Petite suite", "type": "pick", "values": [0, 15] },
+    { "key": "large", "label": "Grande suite", "type": "pick", "values": [0, 30] },
+    { "key": "yams", "label": "Yams", "type": "pick", "values": [0, 50] },
+    { "key": "chance", "label": "Chance", "type": "int", "min": 0, "max": 30 }
+  ],
+  "scoring": {
+    "vars": {
+      "upper": "ones + twos + threes + fours + fives + sixes",
+      "bonus": "upper >= 63 ? 35 : 0"
+    },
+    "score": "upper + bonus + brelan + carre + full + small + large + yams + chance",
+    "subtotals": [
+      { "label": "Sous-total", "value": "upper" },
+      { "label": "Bonus (≥ 63)", "value": "bonus" }
+    ]
+  },
+  "end": "grid_complete",
+  "tests": [
+    {
+      "name": "Bonus de la partie haute",
+      "inputs": {
+        "ones": 3,
+        "twos": 6,
+        "threes": 9,
+        "fours": 12,
+        "fives": 15,
+        "sixes": 18,
+        "brelan": 20,
+        "carre": 0,
+        "full": 25,
+        "small": 15,
+        "large": 0,
+        "yams": 50,
+        "chance": 22
+      },
+      "expect": 230
+    },
+    {
+      "name": "62 en haut : pas de bonus",
+      "inputs": {
+        "ones": 2,
+        "twos": 6,
+        "threes": 9,
+        "fours": 12,
+        "fives": 15,
+        "sixes": 18,
+        "brelan": 0,
+        "carre": 0,
+        "full": 0,
+        "small": 0,
+        "large": 0,
+        "yams": 0,
+        "chance": 0
+      },
+      "expect": 62
+    },
+    {
+      "name": "63 pile : bonus de 35",
+      "inputs": {
+        "ones": 3,
+        "twos": 6,
+        "threes": 9,
+        "fours": 12,
+        "fives": 15,
+        "sixes": 18,
+        "brelan": 0,
+        "carre": 0,
+        "full": 0,
+        "small": 0,
+        "large": 0,
+        "yams": 0,
+        "chance": 0
+      },
+      "expect": 98
+    },
+    {
+      "name": "Tout barré",
+      "inputs": {
+        "ones": 0,
+        "twos": 0,
+        "threes": 0,
+        "fours": 0,
+        "fives": 0,
+        "sixes": 0,
+        "brelan": 0,
+        "carre": 0,
+        "full": 0,
+        "small": 0,
+        "large": 0,
+        "yams": 0,
+        "chance": 0
+      },
+      "expect": 0
+    },
+    {
+      "name": "Feuille parfaite",
+      "inputs": {
+        "ones": 5,
+        "twos": 10,
+        "threes": 15,
+        "fours": 20,
+        "fives": 25,
+        "sixes": 30,
+        "brelan": 30,
+        "carre": 30,
+        "full": 25,
+        "small": 15,
+        "large": 30,
+        "yams": 50,
+        "chance": 30
+      },
+      "expect": 350
+    },
+    {
+      "name": "Partie basse seulement",
+      "inputs": {
+        "ones": 0,
+        "twos": 0,
+        "threes": 0,
+        "fours": 0,
+        "fives": 0,
+        "sixes": 0,
+        "brelan": 18,
+        "carre": 24,
+        "full": 25,
+        "small": 15,
+        "large": 0,
+        "yams": 0,
+        "chance": 21
+      },
+      "expect": 103
+    }
+  ]
+}

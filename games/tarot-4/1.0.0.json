@@ -1,0 +1,245 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "id": "tarot-4",
+  "name": "Tarot à 4",
+  "version": "1.0.0",
+  "engine": 1,
+  "summary": "Le preneur joue seul contre trois. Seuil selon les bouts : 56, 51, 41 ou 36 points. Donne : (25 + écart au seuil ± petit au bout) × contrat (Petite 1, Garde 2, Garde sans 4, Garde contre 6), plus la poignée (20, 30, 40) et le chelem (400 annoncé, 200 non annoncé, −200 s'il chute). Chaque défenseur marque l'opposé, le preneur trois fois la donne.",
+  "tags": ["cartes", "contrat"],
+  "source": "https://www.fftarot.fr",
+  "archetype": "contract",
+  "players": { "min": 4, "max": 4 },
+  "winner": "highest",
+  "inputs": {
+    "round": [
+      {
+        "key": "contract",
+        "label": "Contrat",
+        "type": "enum",
+        "values": [1, 2, 4, 6],
+        "labels": ["Petite", "Garde", "Garde sans", "Garde contre"]
+      },
+      { "key": "bouts", "label": "Bouts", "type": "pick", "values": [0, 1, 2, 3] },
+      { "key": "points", "label": "Points du preneur", "type": "int", "min": 0, "max": 91 },
+      {
+        "key": "petit",
+        "label": "Petit au bout",
+        "type": "enum",
+        "values": ["none", "taker", "defense"],
+        "labels": ["Non", "Preneur", "Défense"],
+        "default": "none"
+      },
+      {
+        "key": "poignee",
+        "label": "Poignée",
+        "type": "enum",
+        "values": [0, 20, 30, 40],
+        "labels": ["Aucune", "Simple", "Double", "Triple"],
+        "default": 0
+      },
+      {
+        "key": "chelem",
+        "label": "Chelem",
+        "type": "enum",
+        "values": ["none", "announced", "unannounced", "failed"],
+        "labels": ["Aucun", "Annoncé, réussi", "Réussi sans annonce", "Annoncé, chuté"],
+        "default": "none"
+      }
+    ]
+  },
+  "scoring": {
+    "scope": "role",
+    "vars": {
+      "threshold": "bouts == 3 ? 36 : bouts == 2 ? 41 : bouts == 1 ? 51 : 56",
+      "margin": "abs(points - threshold)",
+      "made": "points >= threshold",
+      "sign": "made ? 1 : -1",
+      "petitBonus": "petit == 'taker' ? 10 : petit == 'defense' ? -10 : 0",
+      "chelemBonus": "chelem == 'announced' ? 400 : chelem == 'unannounced' ? 200 : chelem == 'failed' ? -200 : 0",
+      "share": "((25 + margin) * sign + petitBonus) * contract + poignee * sign + chelemBonus"
+    },
+    "taker": "3 * share",
+    "defense": "-share",
+    "describe": [
+      { "when": "made", "text": "{contract} réussie de {margin}" },
+      { "when": "not made", "text": "{contract} chutée de {margin}" }
+    ],
+    "zeroSum": true
+  },
+  "validate": [
+    {
+      "rule": "chelem == 'announced' or chelem == 'unannounced' ? points == 91 : true",
+      "message": "Un chelem réussi, c'est tous les plis : 91 points pour le preneur."
+    }
+  ],
+  "tests": [
+    {
+      "name": "Garde réussie de 6 (2 bouts, 47 points)",
+      "inputs": {
+        "contract": 2,
+        "bouts": 2,
+        "points": 47,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": 186, "defense": -62 }
+    },
+    {
+      "name": "Petite faite pile (0 bout, 56 points)",
+      "inputs": {
+        "contract": 1,
+        "bouts": 0,
+        "points": 56,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": 75, "defense": -25 }
+    },
+    {
+      "name": "Petite chutée de 6 (1 bout, 45 points)",
+      "inputs": {
+        "contract": 1,
+        "bouts": 1,
+        "points": 45,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": -93, "defense": 31 }
+    },
+    {
+      "name": "Garde sans réussie de 14 (3 bouts, 50 points)",
+      "inputs": {
+        "contract": 4,
+        "bouts": 3,
+        "points": 50,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": 468, "defense": -156 }
+    },
+    {
+      "name": "Garde contre chutée de 11 (2 bouts, 30 points)",
+      "inputs": {
+        "contract": 6,
+        "bouts": 2,
+        "points": 30,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": -648, "defense": 216 }
+    },
+    {
+      "name": "Garde réussie avec le petit au bout du preneur",
+      "inputs": {
+        "contract": 2,
+        "bouts": 1,
+        "points": 53,
+        "petit": "taker",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": 222, "defense": -74 }
+    },
+    {
+      "name": "Garde chutée malgré le petit au bout du preneur",
+      "inputs": {
+        "contract": 2,
+        "bouts": 1,
+        "points": 49,
+        "petit": "taker",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": -102, "defense": 34 }
+    },
+    {
+      "name": "Petite réussie, petit au bout pris par la défense",
+      "inputs": {
+        "contract": 1,
+        "bouts": 2,
+        "points": 44,
+        "petit": "defense",
+        "poignee": 0,
+        "chelem": "none"
+      },
+      "expect": { "taker": 54, "defense": -18 }
+    },
+    {
+      "name": "Garde réussie avec poignée simple",
+      "inputs": {
+        "contract": 2,
+        "bouts": 2,
+        "points": 47,
+        "petit": "none",
+        "poignee": 20,
+        "chelem": "none"
+      },
+      "expect": { "taker": 246, "defense": -82 }
+    },
+    {
+      "name": "Petite chutée : la poignée double va à la défense",
+      "inputs": {
+        "contract": 1,
+        "bouts": 0,
+        "points": 50,
+        "petit": "none",
+        "poignee": 30,
+        "chelem": "none"
+      },
+      "expect": { "taker": -183, "defense": 61 }
+    },
+    {
+      "name": "Garde sans avec chelem annoncé et réussi",
+      "inputs": {
+        "contract": 4,
+        "bouts": 3,
+        "points": 91,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "announced"
+      },
+      "expect": { "taker": 2160, "defense": -720 }
+    },
+    {
+      "name": "Garde avec chelem réussi sans annonce",
+      "inputs": {
+        "contract": 2,
+        "bouts": 3,
+        "points": 91,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "unannounced"
+      },
+      "expect": { "taker": 1080, "defense": -360 }
+    },
+    {
+      "name": "Garde contre réussie, chelem annoncé mais chuté",
+      "inputs": {
+        "contract": 6,
+        "bouts": 3,
+        "points": 80,
+        "petit": "none",
+        "poignee": 0,
+        "chelem": "failed"
+      },
+      "expect": { "taker": 642, "defense": -214 }
+    },
+    {
+      "name": "Garde faite pile avec petit au bout et poignée triple",
+      "inputs": {
+        "contract": 2,
+        "bouts": 2,
+        "points": 41,
+        "petit": "taker",
+        "poignee": 40,
+        "chelem": "none"
+      },
+      "expect": { "taker": 330, "defense": -110 }
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "version": 3,
+  "generatedAt": "2026-10-20T23:35:17.478Z",
+  "games": [
+    {
+      "id": "belote",
+      "name": "Belote",
+      "version": "1.0.0",
+      "engine": 1,
+      "path": "games/belote/1.0.0.json",
+      "sha256": "9266582d62a48af7e52533233d4d161c4a2a2bbbfb85c21a3ceceb7958d97443",
+      "players": [
+        4,
+        4
+      ],
+      "tags": [
+        "cartes",
+        "équipes",
+        "plis"
+      ]
+    },
+    {
+      "id": "coinche",
+      "name": "Coinche",
+      "version": "1.0.0",
+      "engine": 1,
+      "path": "games/coinche/1.0.0.json",
+      "sha256": "06b57ac14e06b08d918a8dc7d3e8b2516eb1feddbc43d7a34fcef133a53e4f5c",
+      "players": [
+        4,
+        4
+      ],
+      "tags": [
+        "cartes",
+        "équipes",
+        "plis",
+        "contrat"
+      ]
+    },
+    {
+      "id": "compteur",
+      "name": "Compteur",
+      "version": "1.0.0",
+      "engine": 1,
+      "path": "games/compteur/1.0.0.json",
+      "sha256": "18cb0f4e276d6ebf8186a58ca24980547d09095ac89cc267b28c33e481d4a21f",
+      "players": [
+        1,
+        8
+      ],
+      "tags": [
+        "compteur"
+      ]
+    },
+    {
+      "id": "skull-king",
+      "name": "Skull King",
+      "version": "1.1.0",
+      "engine": 1,
+      "path": "games/skull-king/1.1.0.json",
+      "sha256": "b37d7af2a267a79455e37b03b7cc2e4d5ebac344f67fc0a2111650efebd7f573",
+      "players": [
+        2,
+        8
+      ],
+      "tags": [
+        "cartes",
+        "plis"
+      ]
+    },
+    {
+      "id": "skyjo",
+      "name": "Skyjo",
+      "version": "1.1.0",
+      "engine": 1,
+      "path": "games/skyjo/1.1.0.json",
+      "sha256": "1e18e95fd3ad31290fadb8277bba98a4358239472098837589528ad1c944c018",
+      "players": [
+        2,
+        8
+      ],
+      "tags": [
+        "cartes"
+      ]
+    },
+    {
+      "id": "tarot-4",
+      "name": "Tarot à 4",
+      "version": "1.0.0",
+      "engine": 1,
+      "path": "games/tarot-4/1.0.0.json",
+      "sha256": "844ea0b888d4ce7d64d8c3b656eaee206713edf8e7cfb1d6593116171b72fc29",
+      "players": [
+        4,
+        4
+      ],
+      "tags": [
+        "cartes",
+        "contrat"
+      ]
+    },
+    {
+      "id": "yams",
+      "name": "Yams",
+      "version": "1.0.0",
+      "engine": 1,
+      "path": "games/yams/1.0.0.json",
+      "sha256": "0c1b9a5d563835b2c98ae46f47b7c6178912de877c589cbf8e7081134558b44f",
+      "players": [
+        1,
+        8
+      ],
+      "tags": [
+        "dés"
+      ]
+    }
+  ]
+}

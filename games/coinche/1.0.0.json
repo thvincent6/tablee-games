@@ -1,0 +1,284 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "id": "coinche",
+  "name": "Coinche",
+  "version": "1.0.0",
+  "engine": 1,
+  "summary": "Belote contrée, deux équipes de deux. Contrat de 80 à 160 ou capot. Contrat réussi (points faits, belote comprise, au moins égaux au contrat et supérieurs à la défense) : points faits + contrat, arrondis à la dizaine. Chute : la défense marque 160 + contrat. Coinché : (160 + contrat) × 2 au gagnant, surcoinché × 4. Capot non demandé : 250 + contrat ; capot demandé : 500, 1 000 ou 2 000. La belote reste à l'équipe qui l'a.",
+  "tags": ["cartes", "équipes", "plis", "contrat"],
+  "source": "https://www.ffbelote.org",
+  "archetype": "contract",
+  "players": { "min": 4, "max": 4 },
+  "teams": { "count": 2, "size": 2 },
+  "winner": "highest",
+  "options": [
+    {
+      "key": "target",
+      "label": "Fin de partie",
+      "type": "enum",
+      "values": [1000, 2000, 3000],
+      "labels": ["1 000 points", "2 000 points", "3 000 points"],
+      "default": 2000
+    }
+  ],
+  "inputs": {
+    "round": [
+      {
+        "key": "contract",
+        "label": "Contrat",
+        "type": "enum",
+        "values": [80, 90, 100, 110, 120, 130, 140, 150, 160, "capot"],
+        "labels": ["80", "90", "100", "110", "120", "130", "140", "150", "160", "Capot"]
+      },
+      {
+        "key": "coinche",
+        "label": "Coinche",
+        "type": "enum",
+        "values": [1, 2, 4],
+        "labels": ["Non", "Coinché", "Surcoinché"],
+        "default": 1
+      },
+      {
+        "key": "takerPts",
+        "label": "Points preneur",
+        "type": "int",
+        "min": 0,
+        "max": 500,
+        "complement": { "field": "defensePts", "total": 162 }
+      },
+      { "key": "defensePts", "label": "Points défense", "type": "int", "min": 0, "max": 500 },
+      {
+        "key": "belote",
+        "label": "Belote",
+        "type": "enum",
+        "values": ["none", "taker", "defense"],
+        "labels": ["Personne", "Preneurs", "Défense"],
+        "default": "none"
+      },
+      { "key": "capot", "label": "Tous les plis aux preneurs", "type": "bool" }
+    ]
+  },
+  "scoring": {
+    "scope": "role",
+    "vars": {
+      "belT": "belote == 'taker' ? 20 : 0",
+      "belD": "belote == 'defense' ? 20 : 0",
+      "askedCapot": "contract == 'capot'",
+      "c": "askedCapot ? 0 : contract",
+      "made": "askedCapot ? capot : takerPts + belT >= c and takerPts + belT > defensePts + belD",
+      "pot": "(160 + c) * coinche"
+    },
+    "taker": "askedCapot ? (made ? 500 * coinche + belT : 0) : capot ? 250 + c + belT : made ? (coinche > 1 ? pot + belT : round(takerPts + belT + c, 10)) : belT",
+    "defense": "askedCapot ? (made ? belD : 500 * coinche + belD) : capot ? belD : made ? (coinche > 1 ? belD : round(defensePts + belD, 10)) : pot + belD",
+    "describe": [
+      { "when": "askedCapot and made", "text": "Capot demandé et réussi" },
+      { "when": "askedCapot", "text": "Capot demandé et chuté" },
+      { "when": "capot", "text": "Capot non demandé ({contract})" },
+      { "when": "made and coinche > 1", "text": "{contract} {coinche} et réussi" },
+      { "when": "made", "text": "{contract} réussi ({takerPts} points faits)" },
+      { "when": "coinche > 1", "text": "{contract} {coinche} et chuté" },
+      { "when": "true", "text": "{contract} chuté ({takerPts} points faits)" }
+    ]
+  },
+  "end": "max(totals) >= opt.target",
+  "validate": [
+    {
+      "rule": "capot ? defensePts == 0 : true",
+      "message": "Tous les plis aux preneurs : la défense a 0 point."
+    }
+  ],
+  "tests": [
+    {
+      "name": "Exemple FFB : 80 demandé, 110 faits (190 / 50)",
+      "inputs": {
+        "contract": 80,
+        "coinche": 1,
+        "takerPts": 110,
+        "defensePts": 52,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 190, "defense": 50 }
+    },
+    {
+      "name": "Exemple FFB : 90 demandé, défense devant (0 / 250)",
+      "inputs": {
+        "contract": 90,
+        "coinche": 1,
+        "takerPts": 105,
+        "defensePts": 107,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 0, "defense": 250 }
+    },
+    {
+      "name": "89 pour un contrat de 90 : chute malgré l'arrondi",
+      "inputs": {
+        "contract": 90,
+        "coinche": 1,
+        "takerPts": 89,
+        "defensePts": 73,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 0, "defense": 250 }
+    },
+    {
+      "name": "Contrat fait pile, arrondis à la dizaine",
+      "inputs": {
+        "contract": 90,
+        "coinche": 1,
+        "takerPts": 90,
+        "defensePts": 72,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 180, "defense": 70 }
+    },
+    {
+      "name": "La belote compte pour le contrat, 205 arrondi à 210",
+      "inputs": {
+        "contract": 100,
+        "coinche": 1,
+        "takerPts": 85,
+        "defensePts": 77,
+        "belote": "taker",
+        "capot": false
+      },
+      "expect": { "taker": 210, "defense": 80 }
+    },
+    {
+      "name": "Égalité avec la défense : chute",
+      "inputs": {
+        "contract": 80,
+        "coinche": 1,
+        "takerPts": 81,
+        "defensePts": 81,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 0, "defense": 240 }
+    },
+    {
+      "name": "Coinché et réussi : (160 + 100) × 2",
+      "inputs": {
+        "contract": 100,
+        "coinche": 2,
+        "takerPts": 110,
+        "defensePts": 52,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 520, "defense": 0 }
+    },
+    {
+      "name": "Coinché et chuté : (160 + 120) × 2 à la défense",
+      "inputs": {
+        "contract": 120,
+        "coinche": 2,
+        "takerPts": 100,
+        "defensePts": 62,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 0, "defense": 560 }
+    },
+    {
+      "name": "Surcoinché et réussi : (160 + 90) × 4",
+      "inputs": {
+        "contract": 90,
+        "coinche": 4,
+        "takerPts": 120,
+        "defensePts": 42,
+        "belote": "none",
+        "capot": false
+      },
+      "expect": { "taker": 1000, "defense": 0 }
+    },
+    {
+      "name": "Chute : la défense garde sa belote",
+      "inputs": {
+        "contract": 110,
+        "coinche": 1,
+        "takerPts": 90,
+        "defensePts": 72,
+        "belote": "defense",
+        "capot": false
+      },
+      "expect": { "taker": 0, "defense": 290 }
+    },
+    {
+      "name": "Chute : les preneurs gardent leur belote",
+      "inputs": {
+        "contract": 130,
+        "coinche": 1,
+        "takerPts": 100,
+        "defensePts": 62,
+        "belote": "taker",
+        "capot": false
+      },
+      "expect": { "taker": 20, "defense": 290 }
+    },
+    {
+      "name": "Capot non demandé : 250 + contrat",
+      "inputs": {
+        "contract": 100,
+        "coinche": 1,
+        "takerPts": 162,
+        "defensePts": 0,
+        "belote": "none",
+        "capot": true
+      },
+      "expect": { "taker": 350, "defense": 0 }
+    },
+    {
+      "name": "Capot demandé et réussi : 500",
+      "inputs": {
+        "contract": "capot",
+        "coinche": 1,
+        "takerPts": 162,
+        "defensePts": 0,
+        "belote": "none",
+        "capot": true
+      },
+      "expect": { "taker": 500, "defense": 0 }
+    },
+    {
+      "name": "Capot demandé, contré et réussi : 1 000",
+      "inputs": {
+        "contract": "capot",
+        "coinche": 2,
+        "takerPts": 162,
+        "defensePts": 0,
+        "belote": "none",
+        "capot": true
+      },
+      "expect": { "taker": 1000, "defense": 0 }
+    },
+    {
+      "name": "Capot demandé, surcontré et réussi, avec la belote : 2 020",
+      "inputs": {
+        "contract": "capot",
+        "coinche": 4,
+        "takerPts": 162,
+        "defensePts": 0,
+        "belote": "taker",
+        "capot": true
+      },
+      "expect": { "taker": 2020, "defense": 0 }
+    },
+    {
+      "name": "Capot demandé et chuté : 500 à la défense, belote perdue (site FFB, TODO arbitre)",
+      "inputs": {
+        "contract": "capot",
+        "coinche": 1,
+        "takerPts": 150,
+        "defensePts": 12,
+        "belote": "taker",
+        "capot": false
+      },
+      "expect": { "taker": 0, "defense": 500 }
+    }
+  ]
+}

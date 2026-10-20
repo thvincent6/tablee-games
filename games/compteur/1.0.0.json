@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "id": "compteur",
+  "name": "Compteur",
+  "version": "1.0.0",
+  "engine": 1,
+  "summary": "Un total par joueur, qu'on fait monter ou descendre en direct : points de victoire, points de vie, jetons… Boutons −1 et +1, appui long pour ajouter ou retirer une valeur quelconque. Fin manuelle, ou dès qu'un joueur atteint le seuil choisi. Le plus haut gagne.",
+  "tags": ["compteur"],
+  "archetype": "counter",
+  "players": { "min": 1, "max": 8 },
+  "winner": "highest",
+  "options": [
+    {
+      "key": "target",
+      "label": "Fin de partie",
+      "type": "enum",
+      "values": [0, 10, 21, 50, 100],
+      "labels": ["Manuelle", "10 points", "21 points", "50 points", "100 points"],
+      "default": 0
+    }
+  ],
+  "end": "opt.target > 0 and max(totals) >= opt.target"
+}

@@ -1,0 +1,110 @@
+{
+  "$schema": "../../schema/game.schema.json",
+  "id": "skyjo",
+  "name": "Skyjo",
+  "version": "1.1.0",
+  "engine": 1,
+  "summary": "Chaque manche, chacun note la somme de ses cartes. Celui qui a terminé la manche voit son score doublé s'il n'a pas strictement le plus bas (et un score positif). La partie s'arrête quand un joueur atteint le seuil : le plus bas gagne.",
+  "tags": ["cartes"],
+  "archetype": "rounds",
+  "players": { "min": 2, "max": 8 },
+  "winner": "lowest",
+  "options": [
+    {
+      "key": "threshold",
+      "label": "Fin de partie",
+      "type": "int",
+      "default": 100,
+      "min": 50,
+      "max": 500,
+      "step": 10
+    },
+    { "key": "double", "label": "Doubler le score du finisseur", "type": "bool", "default": true }
+  ],
+  "inputs": {
+    "player": [
+      { "key": "points", "label": "Points", "type": "int", "min": -24, "max": 144 },
+      { "key": "finisher", "label": "A terminé la manche", "type": "bool", "unique": true }
+    ]
+  },
+  "scoring": {
+    "scope": "player",
+    "vars": {
+      "doubled": "opt.double and finisher and points > 0 and points >= min(others.points)"
+    },
+    "score": "doubled ? points * 2 : points",
+    "marks": [{ "when": "doubled", "label": "×2" }]
+  },
+  "end": "max(totals) >= opt.threshold",
+  "validate": [
+    { "rule": "count(all.finisher) == 1", "message": "Indique qui a terminé la manche." }
+  ],
+  "tests": [
+    {
+      "name": "Finisseur pas le plus bas : doublé",
+      "inputs": [
+        { "points": 10, "finisher": true },
+        { "points": 8, "finisher": false },
+        { "points": 25, "finisher": false }
+      ],
+      "expect": [20, 8, 25]
+    },
+    {
+      "name": "Finisseur strictement le plus bas : pas doublé",
+      "inputs": [
+        { "points": 5, "finisher": true },
+        { "points": 8, "finisher": false },
+        { "points": 25, "finisher": false }
+      ],
+      "expect": [5, 8, 25]
+    },
+    {
+      "name": "Finisseur ex æquo avec le plus bas : doublé",
+      "inputs": [
+        { "points": 8, "finisher": false },
+        { "points": 8, "finisher": true },
+        { "points": 12, "finisher": false }
+      ],
+      "expect": [8, 16, 12]
+    },
+    {
+      "name": "Finisseur à score négatif : jamais doublé",
+      "inputs": [
+        { "points": -3, "finisher": true },
+        { "points": -5, "finisher": false }
+      ],
+      "expect": [-3, -5]
+    },
+    {
+      "name": "Finisseur à zéro : pas doublé",
+      "inputs": [
+        { "points": 0, "finisher": true },
+        { "points": -2, "finisher": false }
+      ],
+      "expect": [0, -2]
+    },
+    {
+      "name": "Règle du doublement désactivée",
+      "options": { "double": false },
+      "inputs": [
+        { "points": 30, "finisher": true },
+        { "points": 4, "finisher": false }
+      ],
+      "expect": [30, 4]
+    },
+    {
+      "name": "Huit joueurs, scores extrêmes",
+      "inputs": [
+        { "points": 144, "finisher": true },
+        { "points": -24, "finisher": false },
+        { "points": 0, "finisher": false },
+        { "points": 12, "finisher": false },
+        { "points": 33, "finisher": false },
+        { "points": 7, "finisher": false },
+        { "points": 51, "finisher": false },
+        { "points": 99, "finisher": false }
+      ],
+      "expect": [288, -24, 0, 12, 33, 7, 51, 99]
+    }
+  ]
+}
