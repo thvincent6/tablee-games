@@ -1,0 +1,56 @@
+# Vérifie les jeux proposés par une pull request : nouveaux fichiers rejoués comme par
+# `games:check`, fichiers déjà publiés intouchables. Le rapport est publié en commentaire par
+# pr-games-comment.yml (une pull request venue d'un fork n'a pas le droit d'écrire).
+name: Jeux proposés
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      # Le code qui vérifie vient de la branche cible : une pull request ne peut pas
+      # assouplir la vérification de ses propres jeux.
+      - name: Branche cible
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base
+          persist-credentials: false
+      - name: Pull request
+        uses: actions/checkout@v7
+        with:
+          path: pr
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: base/package-lock.json
+      - name: Vérifier les jeux
+        run: |
+          tool=base
+          # Tout premier passage : la branche cible n'a pas encore le script de revue.
+          [ -f base/packages/engine/src/cli/review-pr.ts ] || tool=pr
+          (cd "$tool" && npm ci --ignore-scripts)
+          "$tool/node_modules/.bin/tsx" "$tool/packages/engine/src/cli/review-pr.ts" \
+            base/games pr/games --out report.md
+      - name: Résumé de l'exécution
+        if: always()
+        run: |
+          [ -f report.md ] && cat report.md >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ github.event.pull_request.number }}" > pr-number
+      - name: Rapport pour le commentaire
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: games-report
+          path: |
+            report.md
+            pr-number
+          if-no-files-found: ignore
+          retention-days: 7

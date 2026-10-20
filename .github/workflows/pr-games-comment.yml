@@ -1,0 +1,44 @@
+# Publie (ou met à jour) le rapport de pr-games.yml en commentaire de la pull request.
+# Tourne avec le code de la branche principale et ne fait que lire l'artefact : le rapport est
+# traité comme du texte, jamais exécuté.
+name: Commentaire du rapport
+
+on:
+  workflow_run:
+    workflows: [Jeux proposés]
+    types: [completed]
+
+permissions:
+  actions: read
+  pull-requests: write
+
+jobs:
+  comment:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: games-report
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - name: Publier le commentaire
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          [ -f report.md ] || { echo "Pas de rapport : rien à publier."; exit 0; }
+          number=$(cat pr-number)
+          [[ "$number" =~ ^[0-9]+$ ]] || { echo "Numéro de pull request invalide."; exit 1; }
+          # Le rapport doit concerner le commit vérifié de cette pull request.
+          pr_head=$(gh pr view "$number" --repo "$REPO" --json headRefOid --jq .headRefOid)
+          [ "$pr_head" = "$HEAD_SHA" ] || { echo "La pull request a changé depuis : rien à publier."; exit 0; }
+          head -c 60000 report.md > body.md
+          id=$(gh api "repos/$REPO/issues/$number/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- tablee-games-check -->"))) | .id' | head -n 1)
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$REPO/issues/comments/$id" -F body=@body.md > /dev/null
+          else
+            gh pr comment "$number" --repo "$REPO" --body-file body.md
+          fi

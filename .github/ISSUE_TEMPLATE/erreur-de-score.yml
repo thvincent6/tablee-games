@@ -1,0 +1,32 @@
+name: Signaler une erreur de score
+description: Un jeu du catalogue ne compte pas comme les règles officielles.
+title: 'Erreur de score : '
+labels: [correction]
+body:
+  - type: input
+    id: file
+    attributes:
+      label: Fichier concerné
+      placeholder: games/skyjo/1.1.0.json
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Règle officielle
+      description: Lien https vers le passage des règles qui contredit le calcul.
+      placeholder: https://…
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Exemple
+      description: Les saisies de la manche, le score affiché par Tablée et le score attendu.
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        La correction arrivera dans une nouvelle version du fichier : une version publiée ne change jamais,
+        pour que les parties déjà jouées restent calculées comme avant.
